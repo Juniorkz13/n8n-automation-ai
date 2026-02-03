@@ -1,119 +1,146 @@
-# n8n AI Automation – Gmail Auto Reply with LLM
+# Gmail Auto Reply with AI (n8n Workflow)
 
 ## 📌 Overview
-This project demonstrates a **real-world AI-powered automation** built with **n8n**, integrating **Gmail** and a **Large Language Model (LLM)** to automatically receive emails, understand their content, and generate intelligent replies based on a custom prompt.
+This project implements an **AI-powered email automation** using **n8n**, **Gmail**, and a **Large Language Model (LLM)**.
 
-The goal of this project is to showcase **applied AI**, **workflow automation**, and **API integrations** in a way that mirrors professional, production-like environments used by companies.
+The workflow listens for incoming emails, evaluates whether they are relevant, generates a contextual response using AI, replies automatically via Gmail, and logs every interaction for auditability and monitoring.
+
+This project was designed as a **real-world automation use case**, following production-oriented best practices.
 
 ---
 
-## 🚀 What This Automation Does
-- Listens for new incoming emails in Gmail
-- Extracts and processes the email content
-- Sends the content to a Large Language Model (LLM)
-- Generates a contextual, prompt-based response
-- Automatically replies to the sender via Gmail
+## 🚀 What This Workflow Does
+- Listens for new incoming Gmail messages
+- Restricts execution to authorized test email addresses
+- Filters messages based on business intent (regex-based)
+- Generates intelligent replies using an LLM
+- Replies directly within the original Gmail thread
+- Logs all interactions to Google Sheets
 
 ---
 
 ## 🧠 Why This Project Matters
-Recruiters and companies value engineers who can:
-- Apply AI to solve real problems
-- Integrate external services via APIs
-- Build automated pipelines, not just models
-- Think about scalability, cost, and reliability
-
-This project demonstrates:
-- **AI integration in automation**
-- **Event-driven workflows**
-- **Prompt engineering**
-- **Secure credential management**
-- **Low-code + code hybrid approach**
+This automation demonstrates practical skills that companies look for, including:
+- Applied AI (not just model usage)
+- Event-driven automation
+- API integrations with OAuth2
+- Prompt engineering
+- Observability and logging
+- Secure handling of credentials
 
 ---
 
 ## 🛠️ Tech Stack
-- **n8n** – Workflow automation (self-hosted via Docker)
+- **n8n** – Workflow automation
 - **Docker & Docker Compose**
 - **Gmail API (OAuth2)**
 - **Google Gemini (LLM)**
-- **JavaScript (inside n8n Code nodes)**
+- **Google Sheets API**
+- **JavaScript expressions (n8n)**
 
 ---
 
 ## 📂 Project Structure
 ```
-n8n-source/
-├── gmail-auto-reply-llm/
-│   ├── gmail-auto-reply-llm.json
-│   └── README.md
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
+gmail-auto-reply-llm/
+├── gmail-auto-reply-llm.json
 └── README.md
 ```
 
 ---
 
-## ⚙️ How to Run Locally
+## ⚙️ How the Workflow Works
 
-### 1️⃣ Prerequisites
-- Docker
-- Docker Compose
-- Google Cloud Project with:
-  - Gmail API enabled
-  - OAuth2 credentials configured
+### 1️⃣ Gmail Trigger
+- Monitors incoming emails using polling
+- Captures sender, subject, body, and thread information
 
 ---
 
-### 2️⃣ Environment Setup
-Clone the repository and create your environment file:
-
-```bash
-cp .env.example .env
-```
-
-Fill in required environment variables if needed.
+### 2️⃣ Sender Restriction (Test Mode)
+Only emails sent from a predefined test address are processed.
+This prevents unintended replies during development and testing.
 
 ---
 
-### 3️⃣ Start n8n
-```bash
-docker compose up -d
-```
+### 3️⃣ Intent Validation
+A regex-based filter ensures that only emails related to:
+- courses
+- pricing
+- enrollment
+- training programs
 
-Access n8n at:
-```
-http://localhost:5678
-```
+are processed by the AI.
+
+This reduces cost, noise, and risk.
 
 ---
 
-### 4️⃣ Import the Workflow
-In n8n:
-- Go to **Workflows**
-- Click **Import → From File**
-- Select `gmail-auto-reply-llm.json`
+### 4️⃣ AI Response Generation
+- Uses an LLM with conversational memory (thread-based)
+- Generates concise, professional, HTML-formatted responses
+- Responds in the same language as the incoming email
 
-Reconnect credentials (OAuth is not exported for security reasons).
+---
+
+### 5️⃣ Gmail Reply
+- Replies directly to the original email thread
+- Ensures proper message referencing and avoids loops
+
+---
+
+## 🧾 Logging & Observability (Key Feature)
+Every successful interaction is logged to **Google Sheets**, including:
+
+| Field | Description |
+|-----|------------|
+| timestamp | Execution date and time |
+| from_email | Sender email address |
+| thread_id | Gmail conversation thread |
+| question | Original email content |
+| ai_response | AI-generated reply |
+
+### Why logging matters:
+- Auditability
+- Debugging
+- Quality monitoring
+- Cost and usage analysis
 
 ---
 
 ## 🔐 Security & Best Practices
-- No credentials or API keys are stored in this repository
-- `.env` files are ignored via `.gitignore`
+- No credentials or API keys are stored in the repository
+- `.env` files are excluded via `.gitignore`
 - OAuth credentials are managed directly inside n8n
-- Designed to avoid infinite email reply loops
+- Workflow is designed to avoid email loops and spam behavior
 
 ---
 
-## 📈 Possible Improvements
-- Human-in-the-loop approval before sending replies
-- Intent classification before response generation
-- Response templates per category
-- Logging replies to Google Sheets or a database
-- Rate limiting and cost control
-- Multi-language support
+## 🧪 Local Execution
+1. Start n8n using Docker:
+```bash
+docker compose up -d
+```
+
+2. Access n8n:
+```
+http://localhost:5678
+```
+
+3. Import the workflow JSON:
+- Workflows → Import → From File
+
+4. Configure credentials (Gmail, Sheets, LLM)
+
+---
+
+## 📈 Possible Enhancements
+- Human-in-the-loop approval
+- Business-hour response control
+- Artificial response delay
+- Intent classification via AI
+- Analytics dashboard (Sheets / Looker)
+- Production mode using Gmail labels
 
 ---
 
@@ -126,4 +153,4 @@ Reconnect credentials (OAuth is not exported for security reasons).
 ---
 
 ## 📄 License
-This project is for educational and portfolio purposes.
+This project is intended for educational, demonstration, and portfolio purposes.
