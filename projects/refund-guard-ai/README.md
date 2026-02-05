@@ -50,7 +50,7 @@ Rather than delegating decisions to the LLM, **AI is used strictly for NLP tasks
 ## 📂 Project Structure
 ```
 refundguard-ai/
-├── RefundGuard_AI_Portfolio.json
+├── refund_guard_ai.json
 └── README.md
 ```
 
@@ -132,7 +132,7 @@ http://localhost:5678
 
 3. Import the workflow:
 - Workflows → Import → From File
-- Select `RefundGuard_AI_Portfolio.json`
+- Select `refund_guard_ai.json`
 
 4. Configure credentials:
 - Google Sheets
