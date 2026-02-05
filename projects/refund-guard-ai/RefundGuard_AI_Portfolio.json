@@ -1,0 +1,156 @@
+{
+  "name": "RefundGuard AI — Automated Refund Triage with LLMs",
+  "meta": {
+    "description": "Workflow de portfólio que demonstra automação de triagem de reembolsos usando n8n, LLMs, Google Sheets e regras determinísticas.",
+    "author": "José Júnior",
+    "created_at": "2026-02-05T20:28:38.220955Z",
+    "tags": [
+      "n8n",
+      "automation",
+      "llm",
+      "ai",
+      "refunds",
+      "portfolio"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Webhook | Intake Form",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "portfolio-refund-intake",
+        "options": {}
+      }
+    },
+    {
+      "id": "ai_agent",
+      "name": "AI Agent | Data Extraction & Sentiment",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "Você recebe dados de um formulário de solicitação de reembolso.\nExtraia os seguintes campos:\n- nome\n- email\n- produto_reembolso\n- comentario\n\nAnalise o sentimento do comentário e classifique em:\npositivo, neutro, negativo ou muito_negativo.\n\nRetorne APENAS um JSON com esses campos.",
+        "hasOutputParser": true
+      }
+    },
+    {
+      "id": "sheets",
+      "name": "Google Sheets | Customer Lookup",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        500,
+        0
+      ],
+      "parameters": {
+        "operation": "lookup",
+        "lookupColumn": "email",
+        "lookupValue": "={{ $json.email }}",
+        "sheetName": "clientes_api"
+      }
+    },
+    {
+      "id": "code_rules",
+      "name": "Code | Business Rules & Classification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        0
+      ],
+      "parameters": {
+        "language": "javascript",
+        "code": "\n/*\n  Portfolio note:\n  - LLM é usado apenas para NLP (extração + sentimento)\n  - Regras de negócio e decisões são determinísticas\n*/\n\nconst total = Number($json.total_gasto_cliente || 0);\nconst dias = Number($json.dias_desde_compra || 0);\nconst sentimento = $json.sentimento || 'neutro';\n\nlet perfil_cliente = 'cliente_comum';\nlet acao = 'negar_reembolso';\n\nif (dias <= 7) {\n  acao = 'aprovar_reembolso';\n}\n\nif (total >= 3000 && dias > 7 && sentimento !== 'muito_negativo') {\n  perfil_cliente = 'cliente_vip';\n  acao = 'escalar_financeiro';\n}\n\nif (sentimento === 'muito_negativo') {\n  perfil_cliente = 'cliente_risco';\n  acao = 'escalar_gerencia';\n}\n\nreturn [\n  {\n    ...$json,\n    perfil_cliente,\n    acao\n  }\n];\n"
+      }
+    },
+    {
+      "id": "switch",
+      "name": "Switch | Decision Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "parameters": {
+        "property": "={{ $json.acao }}",
+        "rules": [
+          {
+            "value": "aprovar_reembolso"
+          },
+          {
+            "value": "negar_reembolso"
+          },
+          {
+            "value": "escalar_financeiro"
+          },
+          {
+            "value": "escalar_gerencia"
+          }
+        ]
+      }
+    }
+  ],
+  "connections": {
+    "Webhook | Intake Form": {
+      "main": [
+        [
+          {
+            "node": "AI Agent | Data Extraction & Sentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent | Data Extraction & Sentiment": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets | Customer Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets | Customer Lookup": {
+      "main": [
+        [
+          {
+            "node": "Code | Business Rules & Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code | Business Rules & Classification": {
+      "main": [
+        [
+          {
+            "node": "Switch | Decision Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": false
+  }
+}

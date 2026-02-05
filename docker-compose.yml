@@ -11,6 +11,13 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
     restart: unless-stopped
+    environment:
+      - N8N_HOST=uniparous-subconvex-toshia.ngrok-free.dev
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://uniparous-subconvex-toshia.ngrok-free.dev
+      - N8N_EDITOR_BASE_URL=https://uniparous-subconvex-toshia.ngrok-free.dev
+
+
 
 volumes:
   n8n_data:
