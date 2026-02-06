@@ -1,0 +1,620 @@
+{
+  "name": "My workflow 15",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0a5b6050-f216-4bf3-b84b-02a15a7eaa5b",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9PZHqggup4fy0TFm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4109bf19-98ce-49a9-a22b-4dcbce659166",
+              "leftValue": "={{ $binary.attachment_0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "feab6434-0433-4c3c-a2be-74893dafeec0",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "=$binary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "c1ec8fb9-bb5d-47c6-98a3-840c5861fb2c",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        608,
+        32
+      ],
+      "id": "c86594bc-73a0-4148-a56a-4170036be1f6",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=exto antes ou depois.\n- NÃO use quebras de linha fora do JSON.\n- NÃO use aspas extras envolvendo o JSON.\n- Se violar qualquer regra acima, a resposta será considerada inválida.\n \nTarefa:\nLeia o conteúdo do PDF (fatura ou recibo) fornecido e extraia os dados abaixo para preencher uma planilha.\n \nSe algum campo não existir no documento, retorne null.\n \nFormato do JSON (use EXATAMENTE essas chaves):\n{\n  \"data_fatura\": string | null,\n  \"fornecedor\": string | null,\n  \"valor\": number | null,\n  \"moeda\": string | null,\n  \"impostos\": number | null,\n  \"numero_fatura\": string | null,\n  \"categoria\": string | null,\n  \"tipo\": \"corporativo\" | \"pessoal\" | null,\n  \"metodo_pagamento\": string | null,\n  \"nome_sugerido_arquivo\": string\n}\n \nRegras de formatação:\n- Datas: YYYY-MM-DD\n- Valores numéricos: sem símbolo de moeda, usando ponto decimal\n- \"tipo\": use \"corporativo\" ou \"pessoal\" apenas\n- Não invente informações\n \nRegras para \"arquivo_sugerido\":\n- Formato: Data_Fornecedor_Valor.pdf\n- Fornecedor: sem acentos, sem caracteres especiais, espaços como \"_\"\n- Valor: 2 casas decimais, ponto substituído por \"-\"\n \nExemplo válido de resposta (apenas como referência de formato):\n{\"data_fatura\":\"2025-05-02\",\"fornecedor\":\"Empresa_X\",\"valor\":273.00,\"moeda\":\"BRL\",\"impostos\":13.00,\"numero_fatura\":\"ABC-123\",\"categoria\":\"Servicos\",\"tipo\":\"corporativo\",\"metodo_pagamento\":null,\"nome_sugerido_arquivo\":\"2025-05-02_Empresa_X_273-00.pdf\"}\n \n## Para análise de nota corporativa ou pessoal:\n \n1. REGRA DE OURO (CLIENTE): Procure no texto se há menção ao cliente \"Hashtag Treinamentos\". Se a fatura foi emitida para esta empresa, a categoria é OBRIGATORIAMENTE \"Corporativo\".\n2. ANÁLISE DE CONTEXTO: Se não houver nome de cliente explícito, analise o item comprado: - Se for serviço de streaming (ex: Netflix), delivery de comida (ex: iFood), transporte individual (ex: Uber) ou apps de uso geral, classifique como \"Pessoal\". - Se for serviço empresarial (ex: Marketing, TI, Consultoria, Material de Escritório), classifique como \"Corporativo\".\n \nAgora gere a resposta FINAL obedecendo rigorosamente todas as regras acima.\n",
+        "inputType": "binary",
+        "binaryPropertyName": "={{Object.keys($binary)[0]}}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        48
+      ],
+      "id": "d8604369-c29a-457b-a51c-177f483f470e",
+      "name": "Analyze document",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "HIarH8Kl92HeSbPL",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        416,
+        96
+      ],
+      "id": "fe3387b8-d055-4ebe-a0cd-d8d2109f1fd0",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "57465b42-eb6a-4cff-9bc2-9805c3d9859c",
+              "name": "=content.parts[0].text",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, '').replace(/```/g, '')) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1216,
+        48
+      ],
+      "id": "18053455-d280-42b0-9199-81308f2d8449",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5864284c-3305-4fd2-9cc5-e3a6da882929",
+              "leftValue": "={{ $json.content.parts[0].text.tipo }}",
+              "rightValue": "corporativo",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1392,
+        48
+      ],
+      "id": "741141d0-2eeb-486d-b0b0-9f95852f01ed",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1520,
+        -64
+      ],
+      "id": "02170b94-5c1c-4670-af37-cbd10456d790",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "={{Object.keys($binary)[0]}}",
+        "name": "={{ $json.content.parts[0].text.nome_sugerido_arquivo }}",
+        "driveId": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/folders/1mymTban8K6o7E1MdGJKtYACjfSWdUbv4",
+          "mode": "url"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1728,
+        -64
+      ],
+      "id": "c85652ff-2a86-4740-abe1-4a57132e512c",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "m6r0HQJyh90wPgwI",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1520,
+        176
+      ],
+      "id": "24e488db-e5d4-4912-b7fe-34dbc0cafc14",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "={{Object.keys($binary)[0]}}",
+        "name": "={{ $json.content.parts[0].text.nome_sugerido_arquivo }}",
+        "driveId": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/folders/1KGo0aYKtDDNaybb_QFuT-tVoYE7tea7x",
+          "mode": "url"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1744,
+        176
+      ],
+      "id": "f24daeb8-7a40-4f49-a0cd-e52b133498ec",
+      "name": "Upload file1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "m6r0HQJyh90wPgwI",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1i56_pTHCGHR1PRWgimiI7NbRrgN0bNv6ythXPahruU8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1i56_pTHCGHR1PRWgimiI7NbRrgN0bNv6ythXPahruU8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Data da Fatura": "={{ $('Edit Fields').item.json.content.parts[0].text.data_fatura }}",
+            "Fornecedor": "={{ $('Edit Fields').item.json.content.parts[0].text.fornecedor }}",
+            "Valor": "={{ $('Edit Fields').item.json.content.parts[0].text.valor }}",
+            "Moeda": "={{ $('Edit Fields').item.json.content.parts[0].text.moeda }}",
+            "Impostos": "={{ $('Edit Fields').item.json.content.parts[0].text.impostos }}",
+            "Número da Fatura": "={{ $('Edit Fields').item.json.content.parts[0].text.numero_fatura }}",
+            "Categoria": "={{ $('Edit Fields').item.json.content.parts[0].text.categoria }}",
+            "Corporativo ou Pessoal": "={{ $('Edit Fields').item.json.content.parts[0].text.tipo }}",
+            "Método de Pagamento": "={{ $('Edit Fields').item.json.content.parts[0].text.metodo_pagamento }}",
+            "URL do Arquivo": "={{ $json.webViewLink }}",
+            "E-mail de Origem": "={{ $('Gmail Trigger').item.json.from.value[0].address }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Data da Fatura",
+              "displayName": "Data da Fatura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fornecedor",
+              "displayName": "Fornecedor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Valor",
+              "displayName": "Valor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Moeda",
+              "displayName": "Moeda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Impostos",
+              "displayName": "Impostos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Número da Fatura",
+              "displayName": "Número da Fatura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoria",
+              "displayName": "Categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Corporativo ou Pessoal",
+              "displayName": "Corporativo ou Pessoal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Método de Pagamento",
+              "displayName": "Método de Pagamento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "URL do Arquivo",
+              "displayName": "URL do Arquivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "E-mail de Origem",
+              "displayName": "E-mail de Origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1936,
+        64
+      ],
+      "id": "1640a068-ccf7-46e0-9f7e-fbf60d3f32f1",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GVbMrvHmjc0wOP2T",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Analyze document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Upload file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "timeSavedPerExecution": 1
+  },
+  "versionId": "0b149b1e-4473-447b-9b96-0bd208aa974e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0e2858350b9a1d719459fed2c9c182f04b742b3562e5cd0cc7cefaa58b7d9798"
+  },
+  "id": "XyZdRBjtfuscs8rwGK9YQ",
+  "tags": []
+}
