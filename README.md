@@ -44,10 +44,18 @@ n8n-source/
 │   ├── gmail-auto-reply-llm/
 │   │   ├── gmail-auto-reply-llm.json
 │   │   └── README.md
-    ├── refund-guard-ai/
-    |   ├── refund_guard_ai.json
-    |   └── README.md
-│   └── (future n8n projects)
+|   ├── refund-guard-ai/
+|   |   ├── refund_guard_ai.json
+|   |   └── README.md
+|   ├── invoice-ai/
+|   |   ├── invoice-ai.json
+|   |   └── README.md
+|   └── agentic-customer-service/
+|       ├── agente_principal.json
+|       ├── agente_financeiro.json
+|       ├── agente_suporte.json
+|       ├── agente_sucesso_cliente.json
+|       └── README.md
 ├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
