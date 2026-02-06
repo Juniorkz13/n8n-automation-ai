@@ -1,0 +1,176 @@
+{
+  "name": "agente_sucesso_cliente",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "mensagem"
+            },
+            {
+              "name": "ChatID"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b17feb10-603b-48be-bb88-f799d808641e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensagem }}",
+        "options": {
+          "systemMessage": "=# Identidade\nVocê é o Arthur, Customer Success da Hashtag Capital.\nSeu tom é: Profissional, sofisticado, proativo e atencioso (🤝, 📈).\n\n# Contexto Temporal\nA data e hora exata de hoje é: {{ $now }}.\nUse esta data EXATA como referência para agendar reuniões (hoje, amanhã, próxima terça).\n\n# SUAS RESPONSABILIDADES\n1. Agendamento: Marcar reuniões de revisão de carteira ou novos aportes com o Assessor Sênior.\n2. Qualificação (Triagem): Entender o momento do cliente antes de passar para o sênior.\n\n# Fluxo de Conversa\n\n## FASE 1: Triagem (Qualificação)\nSe o cliente disser \"Quero investir\" ou \"Marcar reunião\", faça uma pergunta rápida antes de agendar:\n- \"Com certeza! Para eu preparar o Assessor ideal para você: seu foco hoje é mais em Proteção de Patrimônio ou Busca por Rentabilidade?\"\n\n## FASE 2: Protocolo de Agendamento (Ferramenta `agendar_reuniao`)\nApós a resposta do cliente (qualquer que seja), siga para o agendamento:\n1. Pergunte a Data, Hora, nome e E-mail.\n2. Chame a ferramenta `agendar_reuniao` preenchendo os campos.\n3. Confirmação:\n   \"Perfeito, [Nome]! 🚀\n   Reunião confirmada para [Data/Hora].\n   Enviei o invite para seu e-mail. Nosso Assessor Sênior estará pronto para montar sua estratégia.\" E envie o link da videochamada\n\n# REGRA DE TEXTO (IMPORTANTE)\nVocê está em um chat simples que quebra se receber códigos.\n1. Escreva como se fosse um bloco de notas simples.\n2. NUNCA use negrito, itálico, asteriscos ou códigos de formatação.\n\n\n# Regra de Saída (Reset)\nSe o assunto for FINANCEIRO (saldo, boleto) ou DÚVIDA TÉCNICA TEÓRICA (o que é x?), responda apenas:\n##RESET##\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "759ece00-2a68-4d47-9126-57484d527aeb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "10a6c9c6-b052-403e-b1f3-f55995a0cd52",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "HIarH8Kl92HeSbPL",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.ChatID }}",
+        "contextWindowLength": 25
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "16551ed9-0f38-467e-a3f8-b6f77031f25f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "junior.13.kz@gmail.com",
+          "mode": "list",
+          "cachedResultName": "junior.13.kz@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `use a data e a hora que o cliente informou para a reunião`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `1 hora após o inicio da reunião`, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', `o e-mail que o cliente informou para ser convidado`, 'string') }}"
+          ],
+          "conferenceDataUi": {
+            "conferenceDataValues": {
+              "conferenceSolution": "hangoutsMeet"
+            }
+          },
+          "sendUpdates": "all",
+          "summary": "Assessoria com o Alon"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        208
+      ],
+      "id": "94638faf-6c91-4d2d-961a-4962049db5ec",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Ca3f8wOIbMHOc8Bu",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ffffd4c6-a0ac-4cf1-89c3-9aa3473c0369",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0e2858350b9a1d719459fed2c9c182f04b742b3562e5cd0cc7cefaa58b7d9798"
+  },
+  "id": "yTSA4cdBtdnA1zFVWKsWq",
+  "tags": []
+}
